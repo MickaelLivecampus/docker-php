@@ -1,17 +1,28 @@
 # Stage 1: Dependencies php installation
-FROM php:8.2-fpm-alpine AS backend-builder
+FROM php:8.2-fpm-buster AS backend-builder
 # Install necessary below packages and clear
-RUN apk update && apk add --no-cache \
+RUN apt-get update && apt-get install -y \
+        gnupg \
+        g++ \
         nano \
+        procps \
+        openssl \
+        git \
+        unzip \
+        zlib1g-dev \
         libzip-dev \
-        libpq \
-        libxml2-dev \
-        libgd \
-        icu-dev \
-        zlib-dev \
-    && rm -rf /var/cache/apk/*
+        libfreetype6-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libicu-dev  \
+        libonig-dev \
+        libxslt1-dev \
+        acl \
+    && rm -rf /var/cache/apt/*
+
+RUN docker-php-ext-configure gd --with-jpeg --with-freetype 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mysqli intl xml ctype dom
+RUN docker-php-ext-install pdo pdo_mysql zip xsl gd intl opcache exif mbstring
 
 # ----------------------------------------------------------------
 
@@ -54,9 +65,3 @@ WORKDIR /var/www/html
 # Copy project files from Composer Builder, Yarn Builder and source code (yarn have it)
 COPY --from=composer_builder /deps .
 COPY --from=yarn_builder /yarn_build .
-
-# # Switch to www-data
-# USER www-data
-
-# # Run PHP-FPM
-# CMD ["php-fpm"]
