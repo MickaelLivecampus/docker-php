@@ -32,7 +32,7 @@ services:
     command: certonly --webroot --webroot-path=/var/www/html --email mickaeldev@hexolis.com --agree-tos --no-eff-email --staging -d ${NGINX_BACKEND_DOMAIN}
 
   php:
-    image: "hexomyns/symfo-groupe3:latest"
+    image: hexomyns/symfo-groupe3:latest
     container_name: php_container
     restart: unless-stopped
     environment:
