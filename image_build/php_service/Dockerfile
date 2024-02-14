@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
         nano \
         procps \
         openssl \
-        git \
         unzip \
         zlib1g-dev \
         libzip-dev \
