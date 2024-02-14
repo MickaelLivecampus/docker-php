@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8181:80"
+    volumes:
+      - php_volume:/var/www/html
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    links:
+      - php
+
   php:
     image: "hexomyns/symfo-groupe3:latest"
     container_name: php_container
@@ -19,13 +29,12 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_DATABASE: ${DB_DATABASE}
       DB_PORT: ${DB_PORT}
+    volumes:
+      - type: volume
+        source: php_volume
+        target: /var/www/html
     depends_on:
       - db
-    volumes:
-      - type: bind
-        source: ./php_volume
-        target: /app/
-
 
   db:
     image: mysql:${DB_VERSION}
@@ -43,4 +52,5 @@ services:
       - dbdata:/var/lib/mysql
 
 volumes:
+  php_volume:
   dbdata:

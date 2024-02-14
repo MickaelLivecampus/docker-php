@@ -22,6 +22,14 @@ WORKDIR /deps
 COPY src/composer.json src/composer.lock ./
 RUN composer install --no-scripts --no-autoloader --no-progress --no-interaction --prefer-dist
 
+COPY src/config           ./config
+COPY src/public/index.php ./public/
+COPY src/src              ./src
+COPY src/templates        ./templates
+COPY src/translations     ./translations
+
+RUN composer dump-autoload
+
 # ----------------------------------------------------------------
 
 # Stage 3: Yarn Builder
@@ -32,7 +40,7 @@ COPY src/package.json src/yarn.lock ./
 # Install JavaScript dependencies
 RUN yarn install --frozen-lockfile --non-interactive
 # Copy entire project
-COPY /src .
+COPY src .
 # Build assets
 RUN yarn encore production
 
@@ -41,14 +49,14 @@ RUN yarn encore production
 # Stage 4: Runner
 FROM backend-builder AS runner
 
-WORKDIR /app
+WORKDIR /var/www/html
 
 # Copy project files from Composer Builder, Yarn Builder and source code (yarn have it)
-COPY --from=composer_builder /deps /app
-COPY --from=yarn_builder /yarn_build /app
+COPY --from=composer_builder /deps .
+COPY --from=yarn_builder /yarn_build .
 
-# Switch to www-data
-USER www-data
+# # Switch to www-data
+# USER www-data
 
-# Run PHP-FPM
-CMD ["php-fpm"]
+# # Run PHP-FPM
+# CMD ["php-fpm"]
