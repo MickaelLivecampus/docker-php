@@ -1,0 +1,31 @@
+# install all dependencies
+FROM oven/bun:slim AS deps
+WORKDIR /deps
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile --silent
+
+# copy node_modules from deps and add source files
+# build all
+FROM node:20-alpine AS builder
+WORKDIR /build
+COPY --from=deps /deps/node_modules ./node_modules
+# copy source files
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV PORT 3005
+ENV NODE_ENV production
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+# copy from build image
+COPY --from=builder /build/public ./public
+COPY --from=builder --chown=nextjs:nodejs ./build/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs ./build/.next/static ./.next/static
+USER nextjs
+# Add monitor by watchtower
+LABEL com.centurylinklabs.watchtower.enable="true"
+# Expose port
+EXPOSE 3005
+CMD ["node", "server.js"]

@@ -1,0 +1,7 @@
+.env
+.env.copy
+prod
+vendor
+var
+.git
+.gitignore

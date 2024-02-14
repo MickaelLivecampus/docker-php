@@ -1,75 +1,54 @@
-FROM php:8.2-fpm-alpine
-
+# Stage 1: Dependencies php installation
+FROM php:8.2-fpm-alpine AS backend-builder
 # Install necessary below packages and clear
 RUN apk update && apk add --no-cache \
-        unzip \
-        git \
         nano \
-        sudo \
         libzip-dev \
         libpq \
         libxml2-dev \
-        freeradius-utils \
         libgd \
         icu-dev \
         zlib-dev \
-        nodejs \
-        npm \
     && rm -rf /var/cache/apk/*
-
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql mysqli intl xml ctype dom
 
-# Install Symfony CLI
-RUN apk add --no-cache bash
-RUN curl -sS https://get.symfony.com/cli/installer | bash
-RUN mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+# ----------------------------------------------------------------
 
-# Install Composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-    && php -r "unlink('composer-setup.php');"
+# Stage 2: Composer Install
+FROM composer:2.7 AS composer_builder
+WORKDIR /deps
+# Copy only the composer files to avoid unnecessary cache invalidation
+COPY src/composer.json src/composer.lock ./
+RUN composer install --no-scripts --no-autoloader --no-progress --no-interaction --prefer-dist
 
-# Install Yarn
-RUN npm i -g yarn
+# ----------------------------------------------------------------
 
-ARG GIT_REPO_URL
+# Stage 3: Yarn Builder
+FROM node:alpine AS yarn_builder
+WORKDIR /yarn_build
+# Copy only the yarn files to avoid unnecessary cache invalidation
+COPY src/package.json src/yarn.lock ./
+# Install JavaScript dependencies
+RUN yarn install --frozen-lockfile --non-interactive
+# Copy entire project
+COPY /src .
+# Build assets
+RUN yarn encore production
 
-# Check if the Git repository URL is provided
-RUN if [ -z "$GIT_REPO_URL" ]; then echo "URL not found !"; exit 1; fi
+# ----------------------------------------------------------------
 
-# Clone the Git repository
-RUN git clone $GIT_REPO_URL /var/www/html
+# Stage 4: Runner
+FROM backend-builder AS runner
 
-# Change the owner of the /var/www/html directory to www-data (PHP-FPM user)
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 755 /var/www/html
+# Copy project files from Composer Builder, Yarn Builder and source code (yarn have it)
+COPY --from=composer_builder /deps /app
+COPY --from=yarn_builder /yarn_build /app
 
-# Copy Apache configuration file (if needed)
-# COPY apache.conf /etc/apache2/sites-enabled/000-default.conf
-
-# Install dependencies if composer.json exists
-WORKDIR /var/www/html
+WORKDIR /app
 
 # Switch to www-data
 USER www-data
-
-# Install composer dependencies if composer.json exists
-RUN if [ -f "composer.json" ]; \ 
-        then composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist; \
-    fi
-
-# Create a .env file
-ARG APP_ENV APP_SECRET MESSENGER_TRANSPORT_DSN MAILER_DSN SOCIETY
-ARG DB_TYPE DB_HOST DB_USER DB_PASSWORD DB_DATABASE DB_PORT
-
-RUN echo "\
-APP_ENV=$APP_ENV\n\
-APP_SECRET=$APP_SECRET\n\
-MESSENGER_TRANSPORT_DSN=$MESSENGER_TRANSPORT_DSN\n\
-MAILER_DSN=$MAILER_DSN\n\
-SOCIETY=$SOCIETY\n\
-DATABASE_URL=$DB_TYPE://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_DATABASE" > .env.local
 
 # Run PHP-FPM
 CMD ["php-fpm"]
