@@ -21,8 +21,11 @@ services:
       DB_PORT: ${DB_PORT}
     depends_on:
       - db
-    # volumes:
-    #   - ./php_volume:/var/www/html
+    volumes:
+      - type: bind
+        source: ./php_volume
+        target: /app/
+
 
   db:
     image: mysql:${DB_VERSION}

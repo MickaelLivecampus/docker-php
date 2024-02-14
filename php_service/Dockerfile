@@ -41,11 +41,11 @@ RUN yarn encore production
 # Stage 4: Runner
 FROM backend-builder AS runner
 
+WORKDIR /app
+
 # Copy project files from Composer Builder, Yarn Builder and source code (yarn have it)
 COPY --from=composer_builder /deps /app
 COPY --from=yarn_builder /yarn_build /app
-
-WORKDIR /app
 
 # Switch to www-data
 USER www-data
