@@ -19,8 +19,11 @@ stop:
 build-images:
 	docker compose build php 
 
+# image_build-php is based: 
+# 1 - parent folder name of docker-compose (image_build)
+# 2 - service name (php in docker-compose.yml)
 tag-images:
-	docker tag php-php hexomyns/symfo-groupe3:latest
+	docker tag image_build-php hexomyns/symfo-groupe3:latest
 
 push-images:
 	docker push hexomyns/symfo-groupe3:latest
