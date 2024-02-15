@@ -23,13 +23,13 @@ build-images:
 # 1 - parent folder name of docker-compose (image_build)
 # 2 - service name (php in docker-compose.yml)
 tag-images:
-	docker tag image_build-php hexomyns/symfo-groupe3:latest
+	docker tag image_build-php hexomyns/symfo-groupe3:${arg1}
 
 push-images:
-	docker push hexomyns/symfo-groupe3:latest
+	docker push hexomyns/symfo-groupe3:${arg1}
 
 clone-src-repository:
-	git clone ${1} php_service/src
+	git clone ${arg1} php_service/src
 
 build-and-push: update-src-repository build-images tag-images push-images
 build-and-push-from-ci: build-images tag-images push-images

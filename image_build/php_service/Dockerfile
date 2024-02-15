@@ -49,7 +49,8 @@ WORKDIR /yarn_build
 COPY src/package.json src/yarn.lock ./
 # Install JavaScript dependencies
 RUN yarn install --frozen-lockfile --non-interactive
-# Copy entire project
+# TODO CAN BE BETTER HERE 
+# Copy entire project
 COPY src .
 # Build assets
 RUN yarn encore production
@@ -59,8 +60,18 @@ RUN yarn encore production
 # Stage 4: Runner
 FROM backend-builder AS runner
 
-WORKDIR /var/www/html
+RUN mkdir -p /app
+
+WORKDIR /app
 
 # Copy project files from Composer Builder, Yarn Builder and source code (yarn have it)
 COPY --from=composer_builder /deps .
 COPY --from=yarn_builder /yarn_build .
+
+RUN rm -r node_modules
+
+# MOVE SOURCE CODE + MIGRATION FEATURE CACHE CLEAR + START PHP_FPM
+COPY init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
+WORKDIR /var/www/html
