@@ -32,3 +32,4 @@ clone-src-repository:
 	git clone ${1} php_service/src
 
 build-and-push: update-src-repository build-images tag-images push-images
+build-and-push-from-ci: build-images tag-images push-images
