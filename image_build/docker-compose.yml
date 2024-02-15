@@ -6,15 +6,19 @@ services:
       context: ./php_service/
     container_name: php_container
     restart: unless-stopped
-    environment:
-      APP_ENV: ${APP_ENV}
-      APP_SECRET: ${APP_SECRET}
-      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN}
-      MAILER_DSN: ${MAILER_DSN}
-      SOCIETY: ${SOCIETY}
-      DB_HOST: db
-      DB_TYPE: ${DB_TYPE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_PORT: ${DB_PORT}
+    # Keep it just for docs purposes
+    # environment:
+    #   APP_ENV: ${APP_ENV}
+    #   APP_SECRET: ${APP_SECRET}
+    #   MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN}
+    #   MAILER_DSN: ${MAILER_DSN}
+    #   MAILER_ADDRESS: ${MAILER_ADDRESS}
+    #   MAILER_NAME: ${MAILER_NAME}
+    #   SOCIETY: ${SOCIETY}
+    #   DB_HOST: db
+    #   DB_TYPE: ${DB_TYPE}
+    #   DB_USER: ${DB_USER}
+    #   DB_PASSWORD: ${DB_PASSWORD}
+    #   DB_DATABASE: ${DB_DATABASE}
+    #   DB_PORT: ${DB_PORT}
+    #   DATABASE_URL: ${DB_TYPE}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}
