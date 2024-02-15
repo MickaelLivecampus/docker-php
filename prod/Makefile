@@ -4,11 +4,8 @@ build-pull:
 services-down:
 	docker-compose down
 
-volume-remove:
-	docker volume rm prod_php_volume
-
 services-up:
 	docker-compose build
 	docker-compose up -d
 
-pull-and-up: build-pull services-down volume-remove services-up
+pull-and-up: build-pull services-down services-up
